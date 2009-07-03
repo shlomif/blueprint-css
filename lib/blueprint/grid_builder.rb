@@ -1,7 +1,7 @@
 begin
-  require 'rubygems'
-  gem 'rmagick'
-  require 'rvg/rvg'
+  require "rubygems"
+  gem "rmagick"
+  require "rvg/rvg"
 rescue Exception => e
 end
 
@@ -27,7 +27,7 @@ module Blueprint
       @gutter_width = options[:gutter_width] || Blueprint::GUTTER_WIDTH
       @output_path  = options[:output_path]  || Blueprint::SOURCE_PATH
     end
-  
+
     # generates (overwriting if necessary) grid.png image to be tiled in background
     def generate!
       return false unless self.able_to_generate
@@ -36,7 +36,7 @@ module Blueprint
       RVG::dpi = 100
 
       rvg = RVG.new((total_width.to_f/RVG::dpi).in, (height.to_f/RVG::dpi).in).viewbox(0, 0, total_width, height) do |canvas|
-        canvas.background_fill = 'white'
+        canvas.background_fill = "white"
 
         canvas.g do |column|
           column.rect(self.column_width - 1, height).styles(:fill => "#e8effb")
@@ -46,7 +46,7 @@ module Blueprint
           baseline.line(0, (height - 1), total_width, (height- 1)).styles(:fill => "#e9e9e9")
         end
       end
-      
+
       FileUtils.mkdir self.output_path unless File.exists? self.output_path
       rvg.draw.write(File.join(self.output_path, "grid.png"))
     end

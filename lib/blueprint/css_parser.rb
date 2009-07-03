@@ -3,7 +3,7 @@ module Blueprint
   class CSSParser
     attr_accessor :namespace
     attr_reader   :css_output, :raw_data
-  
+
     # ==== Options
     # * <tt>css_string</tt> String of CSS data
     # * <tt>options</tt>
@@ -13,39 +13,39 @@ module Blueprint
       @namespace    = options[:namespace] || ""
       compress(@raw_data)
     end
-  
+
     # returns string of CSS which can be saved to a file or otherwise
     def to_s
       @css_output
     end
-  
+
     # returns a hash of all CSS data passed
     #
     # ==== Options
     # * <tt>data</tt> -- CSS string; defaults to string passed into the constructor
     def parse(data = nil)
       data ||= @raw_data
-    
+
       # wrapper array holding hashes of css tags/rules
       css_out = []
       # clear initial spaces
       data.strip_side_space!.strip_space!
-    
+
       # split on end of assignments
       data.split('}').each_with_index do |assignments, index|
         # split again to separate tags from rules
-        tags, styles = assignments.split('{').map{|a| a.strip_side_space!}
+        tags, styles = assignments.split("{").map{|a| a.strip_side_space!}
         unless styles.blank?
           # clean up tags and apply namespaces as needed
           tags.strip_selector_space!
           tags.gsub!(/\./, ".#{namespace}") unless namespace.blank?
-      
+
           # split on semicolon to iterate through each rule
           rules = []
-          styles.split(';').each do |key_val_pair|
+          styles.split(";").each do |key_val_pair|
             unless key_val_pair.nil?
               # split by property/val and append to rules array with correct declaration
-              property, value = key_val_pair.split(':', 2).map{|kv| kv.strip_side_space!}
+              property, value = key_val_pair.split(":", 2).map{|kv| kv.strip_side_space!}
               break unless property && value
               rules << "#{property}:#{value};"
             end
@@ -56,9 +56,9 @@ module Blueprint
       end
       css_out
     end
-  
+
     private
-  
+
     def compress(data)
       @css_output = ""
       parse(data).flatten.sort_by {|i| i[:idx]}.each do |line|
