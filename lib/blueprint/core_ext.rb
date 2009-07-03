@@ -1,20 +1,32 @@
 class String
   # see if string has any content
-  def blank?; self.length.zero?; end
-
-  # strip space after :, remove newlines, replace multiple spaces with only one space, remove comments
-  def strip_space!
-    replace self.gsub(/:\s*/, ":").gsub(/\n/, "").gsub(/\s+/, " ").gsub(/(\/\*).*?(\*\/)/, "")
+  def blank?
+    self.length.zero?
   end
 
-  # remove newlines, insert space after comma, replace two spaces with one space after comma
+  # strip space after :, remove newlines, replace multiple spaces
+  # with only one space, remove comments
+  def strip_space!
+    replace self.
+      gsub(/:\s*/, ":").
+      gsub(/\n/, "").
+      gsub(/\s+/, " ").
+      gsub(/(\/\*).*?(\*\/)/, "")
+  end
+
+  # remove newlines, insert space after comma, replace two spaces
+  # with one space after comma
   def strip_selector_space!
-    replace self.gsub(/(\n)/, "").gsub(",", ", ").gsub(",  ", ", ")
+    replace self.
+      gsub(/\n/, "").
+      gsub(/,\s*/, ", ")
   end
 
   # remove leading whitespace, remove end whitespace
   def strip_side_space!
-    replace self.gsub(/^\s+/, "").gsub(/\s+$/, $/)
+    replace self.
+      gsub(/^\s+/, "").
+      gsub(/\s+$/, $/)
   end
 end
 
