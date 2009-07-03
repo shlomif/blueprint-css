@@ -6,7 +6,6 @@ rescue Exception => e
 end
 
 module Blueprint
-  # Uses ImageMagick and RMagick to generate grid.png file
   class GridBuilder
     begin
       include Magick
@@ -15,11 +14,6 @@ module Blueprint
 
     attr_reader :column_width, :gutter_width, :output_path, :able_to_generate
 
-    # ==== Options
-    # * <tt>options</tt>
-    #   * <tt>:column_width</tt> -- Width (in pixels) of current grid column
-    #   * <tt>:gutter_width</tt> -- Width (in pixels) of current grid gutter
-    #   * <tt>:output_path</tt> -- Output path of grid.png file
     def initialize(options={})
       @able_to_generate = Magick::Long_version rescue false
       return unless @able_to_generate
@@ -28,7 +22,6 @@ module Blueprint
       @output_path  = options[:output_path]  || Blueprint::SOURCE_PATH
     end
 
-    # generates (overwriting if necessary) grid.png image to be tiled in background
     def generate!
       return false unless self.able_to_generate
       total_width = self.column_width + self.gutter_width

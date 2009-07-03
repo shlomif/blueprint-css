@@ -8,17 +8,16 @@ module Blueprint
                   "parts/grid.html",
                   "parts/sample.html"]
 
-    attr_accessor :namespace, :custom_css, :custom_layout, :semantic_classes, :project_name, :plugins
-    attr_reader   :custom_path, :loaded_from_settings, :destination_path, :script_name
+    attr_accessor :namespace, :custom_css, :custom_layout, :semantic_classes,
+                  :project_name, :plugins
+    attr_reader   :custom_path, :loaded_from_settings, :destination_path,
+                  :script_name
 
-    # overridden setter method for destination_path
-    # also sets custom_path flag on Blueprint::Compressor instance
     def destination_path=(path)
       @destination_path = path
       @custom_path = @destination_path != Blueprint::BLUEPRINT_ROOT_PATH
     end
 
-    # constructor
     def initialize
       # set up defaults
       @script_name = File.basename($0)
@@ -36,16 +35,14 @@ module Blueprint
       initialize_project_from_yaml(self.project_name)
     end
 
-    # generates output CSS based on any args passed in
-    # overwrites any existing CSS, as well as grid.png and tests
     def generate!
-      output_header       # information to the user (in the console) describing custom settings
-      generate_css_files  # loops through Blueprint::CSS_FILES to generate output CSS
-      generate_tests      # updates HTML with custom namespaces in order to test the generated library.  TODO: have tests kick out to custom location
-      output_footer       # informs the user that the CSS generation process is complete
+      output_header
+      generate_css_files
+      generate_tests
+      output_footer
     end
 
-    def options #:nodoc:#
+    def options
       OptionParser.new do |o|
         o.set_summary_indent("  ")
         o.banner =    "Usage: #{@script_name} [options]"
@@ -73,15 +70,12 @@ module Blueprint
 
     private
 
-    # attempts to load output settings from settings.yml
     def initialize_project_from_yaml(project_name = nil)
-      # ensures project_name is set and settings.yml is present
       return unless (project_name && File.exist?(@settings_file))
 
-      # loads yaml into hash
       projects = YAML::load(File.path_to_string(@settings_file))
 
-      if (project = projects[project_name]) # checks to see if project info is present
+      if (project = projects[project_name])
         self.namespace =        project["namespace"]        || ""
         self.destination_path = (self.destination_path == Blueprint::BLUEPRINT_ROOT_PATH ? project["path"] : self.destination_path) || Blueprint::BLUEPRINT_ROOT_PATH
         self.custom_css =       project["custom_css"]       || {}
@@ -89,7 +83,12 @@ module Blueprint
         self.plugins =          project["plugins"]          || []
 
         if (layout = project["custom_layout"])
-          self.custom_layout = CustomLayout.new(:column_count => layout["column_count"], :column_width => layout["column_width"], :gutter_width => layout["gutter_width"], :input_padding => layout["input_padding"], :input_border => layout["input_border"])
+          self.custom_layout = CustomLayout.new(
+                                :column_count  => layout["column_count"],
+                                :column_width  => layout["column_width"],
+                                :gutter_width  => layout["gutter_width"],
+                                :input_padding => layout["input_padding"],
+                                :input_border  => layout["input_border"])
         end
         @loaded_from_settings = true
       end
@@ -100,11 +99,9 @@ module Blueprint
         css_output_path = File.join(destination_path, output_file_name)
         puts "\n    Assembling to #{custom_path ? css_output_path : "default blueprint path"}"
 
-        # CSS file generation
-        css_output = css_file_header # header included on all three Blueprint-generated files
+        css_output = css_file_header
         css_output += "\n\n"
 
-        # Iterate through src/ .css files and compile to individual core compressed file
         css_source_file_names.each do |css_source_file|
           puts "      + src/#{css_source_file}"
           css_output += "/* #{css_source_file} */\n" if css_source_file_names.any?
@@ -119,35 +116,29 @@ module Blueprint
           css_output += "\n"
         end
 
-        # append CSS from custom files
         css_output = append_custom_css(css_output, output_file_name)
-
-        #append CSS from plugins
         css_output = append_plugin_css(css_output, output_file_name)
 
-        #save CSS to correct path, stripping out any extra whitespace at the end of the file
         File.string_to_file(css_output.rstrip, css_output_path)
       end
 
-      # append semantic class names if set
       append_semantic_classes
 
-      #attempt to generate a grid.png file
-      if (grid_builder = GridBuilder.new(:column_width => self.custom_layout.column_width, :gutter_width => self.custom_layout.gutter_width, :output_path => File.join(self.destination_path, "src")))
+      if (grid_builder = GridBuilder.new(
+                          :column_width => self.custom_layout.column_width,
+                          :gutter_width => self.custom_layout.gutter_width,
+                          :output_path => File.join(self.destination_path, "src")))
         grid_builder.generate!
       end
     end
 
     def append_custom_css(css, current_file_name)
-      # check to see if a custom (non-default) location was used for output files
-      # if custom path is used, handle custom CSS, if any
       return css unless self.custom_path and self.custom_css[current_file_name]
 
       self.custom_css[current_file_name].each do |custom_css|
         overwrite_path = File.join(destination_path, (custom_css || "my-#{current_file_name}"))
         overwrite_css = File.exists?(overwrite_path) ? File.path_to_string(overwrite_path) : ""
 
-        # if there's CSS present, add it to the CSS output
         unless overwrite_css.blank?
           puts "      + custom styles (#{custom_css})\n"
           css += "/* #{overwrite_path} */\n"
@@ -180,10 +171,13 @@ module Blueprint
 
           Dir.glob(File.join(File.dirname(file), "**", "**")).each do |cp|
             short_path = cp.gsub(/#{File.dirname(file)}./ , "")
-            # make directory if it doesn't exist
             directory = File.dirname(short_path)
-            FileUtils.mkdir_p(File.join(destination_path, directory)) unless directory == "."
-            FileUtils.cp cp, File.join(destination_path, short_path) unless File.directory?(File.join(File.dirname(file), short_path)) || cp == file
+            unless directory == "."
+              FileUtils.mkdir_p(File.join(destination_path, directory))
+            end
+            unless File.directory?(File.join(File.dirname(file), short_path)) || cp == file
+              FileUtils.cp cp, File.join(destination_path, short_path)
+            end
           end
         end
       end
@@ -193,7 +187,10 @@ module Blueprint
 
     def append_semantic_classes
       screen_output_path = File.join(self.destination_path, "screen.css")
-      semantic_styles = SemanticClassNames.new(:namespace => self.namespace, :source_file => screen_output_path).css_from_assignments(self.semantic_classes)
+      semantic_styles = SemanticClassNames.new(
+                          :namespace => self.namespace,
+                          :source_file => screen_output_path)
+      semantic_styles = semantic_styles.css_from_assignments(self.semantic_classes)
       return if semantic_styles.blank?
 
       css = File.path_to_string(screen_output_path)
@@ -204,8 +201,9 @@ module Blueprint
 
     def generate_tests
       puts "\n    Updating namespace to \"#{namespace}\" in test files:"
-      test_files = Compressor::TEST_FILES.map {|f| File.join(Blueprint::TEST_PATH, *f.split(/\//))}
-
+      test_files =  Compressor::TEST_FILES.map do |file|
+                      File.join(Blueprint::TEST_PATH, *file.split(/\//))
+                    end
       test_files.each do |file|
         puts "      + #{file}"
         Namespace.new(file, namespace)

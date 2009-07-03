@@ -1,5 +1,4 @@
 module Blueprint
-  # Validates generated CSS against the W3 using Java
   class Validator
     attr_reader :error_count
 
@@ -7,7 +6,6 @@ module Blueprint
       @error_count = 0
     end
 
-    # Validates all three CSS files
     def validate
       java_path = `which java`.rstrip
       raise "You do not have a Java installed, but it is required." if java_path.blank?
