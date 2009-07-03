@@ -5,7 +5,8 @@ module Blueprint
     # path to ERB file used for CSS template
     CSS_ERB_FILE = File.join(Blueprint::LIB_PATH, "grid.css.erb")
 
-    attr_writer :column_count, :column_width, :gutter_width, :input_padding, :input_border
+    attr_accessor :column_count, :column_width, :gutter_width,
+                  :input_padding, :input_border
 
     # Column count of generated CSS.  Returns itself or Blueprint's default
     def column_count
@@ -32,7 +33,7 @@ module Blueprint
 
     # Returns page width (in pixels)
     def page_width
-      column_count * (column_width + gutter_width) - gutter_width
+      self.column_count * (self.column_width + self.gutter_width) - self.gutter_width
     end
 
     # ==== Options

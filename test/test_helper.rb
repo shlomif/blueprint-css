@@ -5,6 +5,7 @@ require "active_support/test_case"
 
 gem "thoughtbot-shoulda", :version => "2.10.0"
 require "shoulda"
+require "shoulda/rails"
 require "mocha"
 
 begin
@@ -12,4 +13,4 @@ begin
 rescue
 end
 
-require File.join(File.dirname(__FILE__), "..", "lib/blueprint")
+require "blueprint"
