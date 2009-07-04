@@ -10,6 +10,7 @@ module Blueprint
     begin
       include Magick
     rescue Exception => e
+      # silently fail loading Rmagick
     end
 
     attr_reader :column_width, :gutter_width, :output_path, :able_to_generate
@@ -27,8 +28,8 @@ module Blueprint
       total_width = self.column_width + self.gutter_width
       height = 18
       RVG::dpi = 100
-
-      rvg = RVG.new((total_width.to_f/RVG::dpi).in, (height.to_f/RVG::dpi).in).viewbox(0, 0, total_width, height) do |canvas|
+      rvg_width, rvg_height = (total_width.to_f/RVG::dpi).in, (height.to_f/RVG::dpi).in
+      rvg = RVG.new(rvg_width, rvg_height).viewbox(0, 0, total_width, height) do |canvas|
         canvas.background_fill = "white"
 
         canvas.g do |column|
@@ -40,7 +41,7 @@ module Blueprint
         end
       end
 
-      FileUtils.mkdir self.output_path unless File.exists? self.output_path
+      FileUtils.mkdir(self.output_path) unless File.exists? self.output_path
       rvg.draw.write(File.join(self.output_path, "grid.png"))
     end
   end

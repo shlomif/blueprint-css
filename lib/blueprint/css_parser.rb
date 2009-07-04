@@ -20,22 +20,23 @@ module Blueprint
       data.strip_side_space!.strip_space!
 
       data.split('}').each_with_index do |assignments, index|
-        tags, styles = assignments.split("{").map{|a| a.strip_side_space!}
-        unless styles.blank?
-          tags.strip_selector_space!
-          tags.gsub!(/\./, ".#{namespace}") unless namespace.blank?
+        tags, styles = assignments.split("{").map {|a| a.strip_side_space! }
+        next if styles.blank?
 
-          rules = []
-          styles.split(";").each do |key_val_pair|
-            unless key_val_pair.nil?
-              property, value = key_val_pair.split(":", 2).map{|kv| kv.strip_side_space!}
-              break unless property && value
-              rules << "#{property}:#{value};"
-            end
-          end
-          # now keeps track of index as hashes don't keep track of
-          # position (which will be fixed in Ruby 1.9)
-          css_out << {:tags => tags, :rules => rules.to_s, :idx => index} unless tags.blank? || rules.to_s.blank?
+        tags.strip_selector_space!
+        tags.gsub!(/\./, ".#{namespace}") unless namespace.blank?
+
+        rules = []
+        styles.split(";").each do |key_val_pair|
+          next if key_val_pair.nil?
+          property, value = key_val_pair.split(":", 2).map {|kv| kv.strip_side_space! }
+          break unless property && value
+          rules << "#{property}:#{value};"
+        end
+        # now keeps track of index as hashes don't keep track of
+        # position (which will be fixed in Ruby 1.9)
+        unless tags.blank? || rules.empty?
+          css_out << {:tags => tags, :rules => rules.to_s, :idx => index}
         end
       end
       css_out
@@ -45,7 +46,7 @@ module Blueprint
 
     def compress(data)
       @css_output = ""
-      parse(data).flatten.sort_by {|i| i[:idx]}.each do |line|
+      parse(data).flatten.sort_by {|i| i[:idx] }.each do |line|
         @css_output += "#{line[:tags]} {#{line[:rules]}}\n"
       end
     end

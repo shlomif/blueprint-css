@@ -75,23 +75,22 @@ module Blueprint
 
       projects = YAML::load(File.path_to_string(@settings_file))
 
-      if (project = projects[project_name])
-        self.namespace =        project["namespace"]        || ""
-        self.destination_path = (self.destination_path == Blueprint::BLUEPRINT_ROOT_PATH ? project["path"] : self.destination_path) || Blueprint::BLUEPRINT_ROOT_PATH
-        self.custom_css =       project["custom_css"]       || {}
-        self.semantic_classes = project["semantic_classes"] || {}
-        self.plugins =          project["plugins"]          || []
+      return unless (project = projects[project_name])
+      self.namespace =        project["namespace"]        || ""
+      self.destination_path = (self.destination_path == Blueprint::BLUEPRINT_ROOT_PATH ? project["path"] : self.destination_path) || Blueprint::BLUEPRINT_ROOT_PATH
+      self.custom_css =       project["custom_css"]       || {}
+      self.semantic_classes = project["semantic_classes"] || {}
+      self.plugins =          project["plugins"]          || []
 
-        if (layout = project["custom_layout"])
-          self.custom_layout = CustomLayout.new(
-                                :column_count  => layout["column_count"],
-                                :column_width  => layout["column_width"],
-                                :gutter_width  => layout["gutter_width"],
-                                :input_padding => layout["input_padding"],
-                                :input_border  => layout["input_border"])
-        end
-        @loaded_from_settings = true
+      if (layout = project["custom_layout"])
+        self.custom_layout = CustomLayout.new(
+          :column_count  => layout["column_count"],
+          :column_width  => layout["column_width"],
+          :gutter_width  => layout["gutter_width"],
+          :input_padding => layout["input_padding"],
+          :input_border  => layout["input_border"])
       end
+      @loaded_from_settings = true
     end
 
     def generate_css_files
@@ -164,20 +163,20 @@ module Blueprint
           plugin_file_generic
         end
 
-        if file
-          puts "      + #{plugin} plugin\n"
-          plugin_css += "/* #{plugin} */\n"
-          plugin_css += CSSParser.new(File.path_to_string(file)).to_s + "\n"
+        next if !file
 
-          Dir.glob(File.join(File.dirname(file), "**", "**")).each do |cp|
-            short_path = cp.gsub(/#{File.dirname(file)}./ , "")
+        puts "      + #{plugin} plugin\n"
+        plugin_css += "/* #{plugin} */\n"
+        plugin_css += CSSParser.new(File.path_to_string(file)).to_s + "\n"
+
+        Dir.glob(File.join(File.dirname(file), "**", "**")).each do |cp|
+          short_path = cp.gsub(/#{File.dirname(file)}./ , "")
             directory = File.dirname(short_path)
-            unless directory == "."
-              FileUtils.mkdir_p(File.join(destination_path, directory))
-            end
-            unless File.directory?(File.join(File.dirname(file), short_path)) || cp == file
-              FileUtils.cp cp, File.join(destination_path, short_path)
-            end
+          unless directory == "."
+            FileUtils.mkdir_p(File.join(destination_path, directory))
+          end
+          unless File.directory?(File.join(File.dirname(file), short_path)) || cp == file
+            FileUtils.cp(cp, File.join(destination_path, short_path))
           end
         end
       end
@@ -212,7 +211,7 @@ module Blueprint
 
     def output_header
       puts "\n"
-      puts "  #{"*" * 100}"
+      puts "  #{"*" * 78}"
       puts "  **"
       puts "  **   Blueprint CSS Compressor"
       puts "  **"
@@ -227,17 +226,17 @@ module Blueprint
       puts "  **     - Gutter Width: #{self.custom_layout.gutter_width}px"
       puts "  **     - Total Width : #{self.custom_layout.page_width}px"
       puts "  **"
-      puts "  #{"*" * 100}"
+      puts "  #{"*" * 78}"
     end
 
     def output_footer
       puts "\n\n"
-      puts "  #{"*" * 100}"
+      puts "  #{"*" * 78}"
       puts "  **"
       puts "  **   Done!"
       puts "  **   Your compressed files and test files are now up-to-date."
       puts "  **"
-      puts "  #{"*" * 100}\n\n"
+      puts "  #{"*" * 78}\n\n"
     end
 
     def css_file_header

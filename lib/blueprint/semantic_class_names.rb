@@ -5,7 +5,8 @@ module Blueprint
 
     def initialize(options = {})
       @namespace = options[:namespace] || ""
-      @source_file = options[:source_file] || File.join(Blueprint::BLUEPRINT_ROOT_PATH, "screen.css")
+      @source_file =  options[:source_file] ||
+                      File.join(Blueprint::BLUEPRINT_ROOT_PATH, "screen.css")
       self.class_assignments = options[:class_assignments] || {}
     end
 
@@ -13,14 +14,18 @@ module Blueprint
       assignments ||= self.class_assignments
 
       output_css = {}
-
-      blueprint_assignments = CSSParser.new(File.path_to_string(self.source_file)).parse
+      css_to_parse = File.path_to_string(self.source_file)
+      blueprint_assignments = CSSParser.new(css_to_parse).parse
 
       assignments.each do |semantic_class, blueprint_classes|
-        blueprint_classes = blueprint_classes.split(/,|\s/).reject(&:blank?).flatten.map(&:strip)
+        blueprint_classes = blueprint_classes.split(/,|\s/).reject(&:blank?).map(&:strip)
         classes = []
         blueprint_classes.each do |bp_class|
-          match = bp_class.include?('.') ? bp_class.gsub(".", ".#{self.namespace}") : ".#{self.namespace}#{bp_class}"
+          match = if bp_class.include?(".")
+                    bp_class.gsub(".", ".#{self.namespace}")
+                  else
+                    ".#{self.namespace}#{bp_class}"
+                  end
           classes << blueprint_assignments.find_all do |line|
             line[:tags] =~ Regexp.new(/^([\w\.\-\:]+, ?)*#{match}(, ?[\w\.\-\:]+)*$/)
           end.uniq
